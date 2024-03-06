@@ -1,0 +1,193 @@
+<html>
+
+<head>
+    <!-- <meta name="viewport" content="width=device-width, initial-scale=1" /> -->
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+
+    <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-face-aframe.prod.js"></script>
+
+    <style>
+        body {
+            margin: 0;
+        }
+
+        .mindar-ui-overlay {
+            z-index: 99999999999999999999999999999999999999999999999999999999999999999999999999999999999 !important;
+        }
+
+        .example-container {
+            pointer-events: none;
+            overflow: hidden;
+            position: absolute;
+            width: 100%;
+            height: 100%;
+        }
+
+        .ButtonCenter {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .ButtonCenter button {
+            background-color: black;
+            color: white;
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+
+        #AugmentBody {
+            background: rgb(0, 0, 0, 0.8);
+            display: block;
+            position: fixed;
+            z-index: -1;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        #stop-button {
+            font-size: 30px;
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            z-index: 999999999999999999999999999999;
+        }
+
+
+        .MainBody {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .AugmentPart {
+            max-width: 60%;
+            max-height: 70%;
+            width: 100%;
+            opacity: 1;
+            height: 100%;
+            background-color: white;
+            border-radius: 25px;
+            border: none;
+        }
+
+        .a-enter-vr {
+            display: none;
+        }
+
+
+        @media screen and (max-width:700px) {
+            .AugmentPart {
+                max-width: 90%;
+                max-height: 80%;
+            }
+        }
+
+        .a-canvas {
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <button id="start-button" class="TryBtn">Try-On</button>
+    <div class="HeadBodyAugment" id="AugmentBody">
+        <div class="MainBody">
+            <div class="AugmentPart" style="position: relative;">
+        <button id="stop-button">X</button>
+
+                <div id="AugmentContainer" class="example-container" style="z-index: 1000000;">
+                    <a-scene class="a-scene_class" mindar-face="autoStart: false" embedded color-space="sRGB"
+                        renderer="colorManagement: true, physicallyCorrectLights" vr-mode-ui="enabled: false"
+                        device-orientation-permission-ui="enabled: true">
+                        <a-assets>
+                            <a-asset-item id="headModel"
+                                src="https://cdn.jsdelivr.net/gh/hiukim/mind-ar-js@1.2.5/examples/face-tracking/assets/sparkar/headOccluder.glb">
+                            </a-asset-item>
+
+                            <a-asset-item id="glassesModel" src="./BlackGlasses.gltf"></a-asset-item>
+                        </a-assets>
+                        <a-camera active="false" position="0 0 0"> </a-camera>
+                        <a-entity mindar-face-target="anchorIndex: 168">
+                            <a-gltf-model mindar-face-occluder position="0 -0.3 0.15" rotation="0 0 0"
+                                scale="0.065 0.065 0.065" src="#headModel">
+                            </a-gltf-model>
+                        </a-entity>
+                        <a-entity id="model" mindar-face-target="anchorIndex: 168">
+                            <a-gltf-model rotation="0 0 0" position="0 -0.22 -0.01" scale="0.03 0.03 0.03"
+                                src="#glassesModel" class="glasses-entity" visible="true">
+                            </a-gltf-model>
+                        </a-entity>
+                    </a-scene>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const sceneEl = document.querySelector('a-scene');
+            let arSystem;
+            let videoElement;
+            sceneEl.addEventListener('loaded', function () {
+                arSystem = sceneEl.systems["mindar-face-system"];
+            });
+            const startButton = document.querySelector("#start-button");
+            const stopButton = document.querySelector("#stop-button");
+            const canvas = document.getElementsByClassName(".a-canvas");
+            // arReady event triggered when ready
+            sceneEl.addEventListener("arReady", (event) => {
+                console.log("ar ready");
+
+            });
+            // detect target found
+            sceneEl.addEventListener("targetFound", event => {
+                console.log("target found");
+
+            });
+            // detect target lost
+            sceneEl.addEventListener("targetLost", event => {
+                console.log("target lost");
+            });
+            // arError event triggered when something went wrong. Mostly browser compatbility issue
+            sceneEl.addEventListener("arError", (event) => {
+                console.log("ar error");
+            });
+            startButton.addEventListener('click', () => {
+                const AugmentBody = document.getElementById("AugmentBody");
+                if (AugmentBody) {
+                    AugmentBody.style.zIndex = "999999999999999999999";
+                    arSystem.start();
+                    document.getElementsByClassName('a-canvas')[0].style.display = 'block ';
+                    videoElement = document.querySelector('video');
+
+                    if (videoElement) {
+                        videoElement.classList.add('customVideoStyle');
+
+                    }
+
+                }
+
+            });
+            stopButton.addEventListener('click', () => {
+                const AugmentBody = document.getElementById("AugmentBody");
+                if (AugmentBody) {
+                    AugmentBody.style.zIndex = "-1";
+                }
+                arSystem.stop(); // stop
+                document.getElementsByClassName('a-canvas')[0].style.display = 'none';
+            });
+        });
+    </script>
+</body>
+
+</html>
